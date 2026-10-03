@@ -40,8 +40,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   stage.addEventListener("wheel", function (e) {
     var dy = e.deltaY || e.deltaX || 0;
-    if (stage.scrollWidth > stage.clientWidth + 4) stage.scrollLeft -= dy;
-    else stage.scrollTop += dy;
+    if (document.documentElement.classList.contains("upright-land")) stage.scrollTop += dy;
+    else stage.scrollLeft -= dy;
     e.preventDefault();
   }, { passive: false });
   var ly = 0;
@@ -52,8 +52,8 @@ document.addEventListener("DOMContentLoaded", function () {
     var y = e.touches[0].clientY;
     var dy = y - ly;
     ly = y;
-    if (stage.scrollWidth > stage.clientWidth + 4) stage.scrollLeft += dy;
-    else stage.scrollTop -= dy;
+    if (document.documentElement.classList.contains("upright-land")) stage.scrollTop -= dy;
+    else stage.scrollLeft += dy;
     e.preventDefault();
   }, { passive: false });
 });
@@ -798,30 +798,45 @@ document.addEventListener("DOMContentLoaded", function () {
   .hostess b { color:var(--gold); }
   html.preview-spin .hostess-dock {
     position: fixed;
-    bottom: 0;
-    left: 10px;
-    right: 10px;
+    top: 6px;
+    bottom: 6px;
+    right: 0;
+    left: auto;
+    width: 18px;
     z-index: 56;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: stretch;
     justify-content: flex-end;
     pointer-events: auto;
+    transition: width .18s ease;
   }
+  html.preview-spin .hostess-dock.open { width: min(280px, 46vw); }
   html.preview-spin .hostess-bar {
-    height: 28px;
+    width: 18px;
+    flex: 0 0 18px;
+    height: auto;
+    margin: 0;
+    padding: 0;
     border: 0;
-    border-radius: 10px 10px 0 0;
+    border-radius: 8px 0 0 8px;
     background: #c99b45;
-    color: #1a1208;
-    font-weight: 800;
-    font-size: 13px;
+    color: transparent;
+    font-size: 0;
+    box-shadow: -2px 0 0 #8a6a28;
   }
   html.preview-spin .hostess-dock .hostess {
     display: none;
+    flex: 1;
+    min-width: 0;
     margin: 0;
-    max-height: 132px;
+    max-height: none;
     overflow: auto;
+    border-radius: 0;
+    border-right: 0;
   }
+  html.preview-spin .hostess-dock.open .hostess { display: flex; }
+  html.preview-spin .hostess-dock .hostess-face { flex-basis: 40px; width: 40px; height: 40px; }
   html.preview-spin #app.paitou-screen {
     height: 100% !important;
     max-height: 100% !important;
@@ -840,8 +855,8 @@ document.addEventListener("DOMContentLoaded", function () {
   html.preview-spin #app.paitou-screen .panel > p { display: none; }
   html.preview-spin #app.paitou-screen .compass-wrap {
     position: fixed;
-    top: 195px;
-    left: 620px;
+    top: 209px;
+    left: 422px;
     transform: translate(-50%, -50%);
     z-index: 4;
     width: max-content;
@@ -895,6 +910,45 @@ document.addEventListener("DOMContentLoaded", function () {
   html.preview-spin #app.paitou-screen .deal-row { position: fixed; top: 240px; left: 10px; z-index: 30; margin: 0; }
   html.preview-spin #app.paitou-screen .roll-row .btn,
   html.preview-spin #app.paitou-screen .deal-row .btn { padding: 6px 8px; font-size: 13px; }
+  html.preview-spin #app.pg-screen .hand-box {
+    position: fixed;
+    left: 12px;
+    top: 4px;
+    bottom: 4px;
+    right: auto;
+    margin: 0;
+    width: auto;
+    max-width: none;
+    z-index: 30;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    background: transparent !important;
+  }
+  html.preview-spin #app.pg-screen .hand-box .name { display: none; }
+  html.preview-spin #app.pg-screen .hand-box .tiles {
+    display: flex !important;
+    flex-direction: column;
+    flex-wrap: nowrap !important;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin: 0 !important;
+    max-width: none;
+  }
+  html.preview-spin #app.pg-screen .hand-box .tile {
+    width: 26px !important;
+    height: 78px !important;
+    max-width: 26px;
+    transform: none !important;
+  }
+  html.preview-spin #app.pg-screen .hand-box .dock-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  html.preview-spin #app.pg-screen .hand-box .dock-actions .btn { padding: 4px 8px; font-size: 12px; }
   .img-ph { display:flex; align-items:center; justify-content:center; background:#0d2c28; color:var(--gold); font-size:12px; }
   .mode-icon { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; display: block; margin: 0 auto 4px; border: 2px solid var(--gold); box-shadow: 0 3px 8px #0005; }
   .mode-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
@@ -1164,6 +1218,48 @@ document.addEventListener("DOMContentLoaded", function () {
   html.preview-spin.upright-land #spinStage {
     transform: translate(-50%, -50%) scale(var(--land-scale, 1));
   }
+  html.preview-spin.vs-scroll #spinStage,
+  html.preview-spin.pg-scroll #spinStage {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  html.preview-spin.upright-land.vs-scroll #spinStage,
+  html.preview-spin.upright-land.pg-scroll #spinStage {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  html.preview-spin.vs-scroll #app.home-wrap:has(.panel.lobby),
+  html.preview-spin.vs-scroll #app.home-wrap:has(.wait-panel) {
+    height: 390px !important;
+    max-height: 390px !important;
+    width: max-content !important;
+    min-width: 100% !important;
+    display: flex !important;
+    flex-flow: column wrap !important;
+    align-content: flex-start !important;
+    overflow: visible !important;
+  }
+  html.preview-spin.vs-scroll .panel.lobby,
+  html.preview-spin.vs-scroll .panel.lobby:has(.seat-board),
+  html.preview-spin.vs-scroll .wait-panel {
+    height: 390px;
+    max-height: 390px;
+    width: max-content;
+    min-width: 280px;
+    overflow: visible !important;
+    display: flex;
+    flex-flow: column wrap;
+    align-content: flex-start;
+    flex: none;
+  }
+  html.preview-spin.vs-scroll .seat-board {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    flex: none;
+    min-height: 0;
+  }
+  html.preview-spin.vs-scroll .seat-row { min-height: 64px; flex: none; }
   html.preview-spin body { padding: 4px 8px 8px !important; }
   html.preview-spin #app,
   html.preview-spin #app.home-wrap,
@@ -1353,7 +1449,14 @@ document.addEventListener("DOMContentLoaded", function () {
   html.preview-spin #app.room-screen .dong-stack { width: 26px; height: 68px; }
   html.preview-spin #app.room-screen .open-seat .tile { width: 12px !important; height: 32px !important; }
   html.preview-spin #app.room-screen .open-seat .tile { width: 14px !important; height: 40px !important; }
-  html.preview-spin #app.room-screen .pub-who { font-size: 10px; line-height: 1.1; }
+  html.preview-spin #app.room-screen .pub-who {
+    font-size: 10px; line-height: 1.1;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  html.preview-spin #app.room-screen .pub-who .won-pile { position: static; margin: 0; max-width: none; }
+  html.preview-spin #app.room-screen .pub-who .won-open { display: flex; gap: 3px; align-items: flex-end; justify-content: center; }
+  html.preview-spin #app.room-screen .pub-who .dong-face { display: flex; gap: 1px; align-items: flex-end; }
+  html.preview-spin #app.room-screen .pub-who .dong-face .tile { width: 12px !important; height: 34px !important; max-width: 12px !important; }
   html.preview-spin #app.room-screen .topbar > div { display: none; }
   html.preview-spin #app.room-screen .hand-box {
     position: relative;
@@ -1407,6 +1510,112 @@ document.addEventListener("DOMContentLoaded", function () {
     height: 64px !important;
     max-height: 64px !important;
   }
+  html.preview-spin #app.room-screen.pg-screen .hand-box {
+    position: fixed !important;
+    left: 96px !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    right: auto !important;
+    margin: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    z-index: 30;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px;
+    transform: none !important;
+  }
+  html.preview-spin #app.room-screen.pg-screen .hand-box .name { display: none !important; }
+  html.preview-spin #app.room-screen.pg-screen .hand-box .tiles {
+    position: fixed !important;
+    z-index: 50;
+    top: 248px !important;
+    left: 270px !important;
+    right: auto !important;
+    bottom: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    align-items: center;
+    gap: 8px;
+    margin: 0 !important;
+    height: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    overflow: visible !important;
+  }
+  html.preview-spin #app.room-screen.pg-screen .hand-box .tile {
+    width: 34px !important;
+    height: 102px !important;
+    max-width: none !important;
+    max-height: none !important;
+    flex: 0 0 auto !important;
+    transform: none !important;
+    outline: 1px solid #d7c4a2;
+    box-shadow: none;
+    cursor: pointer;
+  }
+  html.preview-spin #app.room-screen.pg-screen .hand-box .pips { pointer-events: none; }
+  html.preview-spin #app.room-screen.pg-screen .hand-box .tile.selected {
+    outline: 3px solid #ffe14a;
+    box-shadow: 0 0 0 3px #b8322a;
+    filter: brightness(1.4);
+  }
+  html.preview-spin #app.room-screen.pg-screen .show-pair { display: contents; }
+  html.preview-spin #app.room-screen.pg-screen .show-seat { position: static; min-width: 0; }
+  html.preview-spin #app.room-screen.pg-screen .show-seat .name,
+  html.preview-spin #app.room-screen.pg-screen .show-seat .meta { display: none; }
+  html.preview-spin #app.room-screen.pg-screen .show-seat .tiles {
+    position: fixed !important;
+    z-index: 24;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 8px;
+    margin: 0;
+  }
+  html.preview-spin #app.room-screen.pg-screen .show-seat:first-child .tiles { top: 79px; left: 430px; }
+  html.preview-spin #app.room-screen.pg-screen .show-seat:nth-child(2) .tiles { top: 248px; left: 270px; }
+  html.preview-spin #app.room-screen.pg-screen .show-seat .tile {
+    width: 56px !important;
+    height: 78px !important;
+    transform: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    outline: 2px solid #F5D76A;
+  }
+  html.preview-spin #app.pg-result-screen .row {
+    position: fixed !important;
+    z-index: 40;
+    top: 300px;
+    left: 24px;
+    display: flex !important;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    width: auto;
+  }
+  html.preview-spin #app.pg-result-screen .row .btn {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+  html.preview-spin #app.pg-screen .bacc .tiles,
+  html.preview-spin #app.pg-screen .pg-vs .tiles {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center;
+    gap: 4px;
+  }
+  html.preview-spin #app.pg-screen .bacc .tile,
+  html.preview-spin #app.pg-screen .pg-vs .tile {
+    width: 28px !important;
+    height: 84px !important;
+    transform: none !important;
+  }
   html.preview-spin #app.home-wrap:has(.lessons-page),
   html.preview-spin #app.home-wrap:has(> .rule-card),
   html.preview-spin #app.catalog-wrap {
@@ -1444,8 +1653,13 @@ document.addEventListener("DOMContentLoaded", function () {
     font-size: 13px;
     transform: translate(-50%, -50%);
   }
-  /* 紅圈：出牌，預覽右下 */
-  html.preview-spin #app.room-screen .dock-actions.play-main > .play-btn { top: 268px; left: 230px; bottom: auto; }
+  /* 出牌領磴：預覽左邊，同出牌同一高度，綠色，唔遮自己牌 */
+  html.preview-spin #app.room-screen .dock-actions.play-main > .play-btn {
+    top: 150px; left: 230px; bottom: auto;
+    background: #1e8f45 !important;
+    border-color: #146b32 !important;
+    color: #fff !important;
+  }
   /* 藍圈：墊牌，預覽右邊 */
   html.preview-spin #app.room-screen .dock-actions.play-main > .pad-btn { top: 318px; left: 520px; bottom: auto; }
   html.preview-spin #app.room-screen .dock-actions.play-main > .clear-btn { top: 168px; left: 200px; bottom: auto; font-size: 11px; padding: 3px 6px; }
@@ -3360,7 +3574,7 @@ function currentTrickTableHTML(match) {
     const p = settled && last ? (last.plays && last.plays[i]) : (match.plays && match.plays[i]);
     const waiting = !settled && match.currentPlayer === i && !p && !match.awaitingNextRound && !match.finished;
     return `<div class="open-seat seat-${side} ${waiting ? "on" : ""}">
-      <div class="pub-who">${playerFaceHTML(i,"mini")} ${windOf(i) || ""} · ${(state.names[i] || "").replace(/（.*?）/g,"")}${bankerMark(i)} · ${((match.collectedTiles[i]||0)/4)}棟</div>
+      <div class="pub-who">${playerFaceHTML(i,"mini")} ${windOf(i) || ""} · ${(state.names[i] || "").replace(/（.*?）/g,"")}${bankerMark(i)}${wonPileHTML(match, i)}</div>
       <div class="tiles">${p ? "" : `<span class="meta">未出</span>`}</div>
       <div class="play-kind"></div>
     </div>`;
@@ -3373,14 +3587,9 @@ function currentTrickTableHTML(match) {
     if (!p) return "";
     return `<div class="trick-play trick-${side}"><div class="tiles">${faceTilesOrBacks(p, false)}</div><div class="play-kind">${p.isDiscard ? "墊牌 · 冚住" : playKindText(p)}</div></div>`;
   }).join("");
-  const piles = ["s","e","n","w"].map(side => {
-    const pile = wonPileHTML(match, around[side]);
-    return pile ? `<div class="won-slot won-${side}">${pile}</div>` : "";
-  }).join("");
   return `<div class="open-table">
     <h3>${title}</h3>
     <div class="trick-center">${center}</div>
-    ${piles}
     <div class="open-grid">${seats.join("")}</div>
   </div>`;
 }
@@ -3427,17 +3636,14 @@ function trickDongsHTML(trick) {
 function wonPileHTML(match, i) {
   const won = (match.trickHistory||[]).filter(tr => tr.winner===i);
   if (!won.length) return "";
-  let html = "";
-  won.forEach(tr => {
+  const groups = won.map(tr => {
     const play = (tr.plays || [])[i];
     const tiles = (play && play.tiles) || [];
-    if (!tiles.length) return;
-    const dongs = Math.max(1, Math.round(tr.count || play.count || 1));
-    for (let k = 0; k < dongs; k++) html += wonDongHTML(tiles, false);
-  });
-  if (!html) return "";
-  const n = ((match.collectedTiles && match.collectedTiles[i]) || 0) / 4;
-  return `<div class="won-pile"><div class="won-lab">${n}棟</div><div class="tiles won-open">${html}</div></div>`;
+    if (!tiles.length) return "";
+    return `<div class="dong-face">${tiles.map(t => tileHTML(t, { compact:true })).join("")}</div>`;
+  }).join("");
+  if (!groups) return "";
+  return `<div class="won-pile"><div class="tiles won-open">${groups}</div></div>`;
 }
 function ddAvatar(i, match) {
   if (i==null || i<0) return "";
@@ -3822,6 +4028,9 @@ function render() {
     if (app) app.innerHTML = `<div class="panel"><div class="name">畫面出錯</div><p class="meta">${String(err && err.message || err)}</p><button class="btn" onclick="state.screen='home';render()">返回主畫面</button></div>`;
   }
   if (app) {
+    const vsScroll = state.game !== "paigow" && state.mode === "versus" && ["lobby","waiting","game","paitou","result"].includes(state.screen);
+    document.documentElement.classList.toggle("vs-scroll", !!vsScroll);
+    document.documentElement.classList.toggle("pg-scroll", ["paigow","pg-showdown","pg-result"].includes(state.screen));
     const play = ["waiting","paitou","game","paigow","result","pg-result","pg-showdown"].includes(state.screen);
     const moon = (typeof MOON_BG_DATA==="string" && MOON_BG_DATA) || "assets/img/bg-home-2.jpg";
     const night31 = (typeof GAME_BG_DATA==="string" && GAME_BG_DATA) || "assets/img/bg-home-31.jpg";
@@ -3869,6 +4078,8 @@ function render() {
       applyBg("home-wrap", moon, "center bottom");
     }
     if (state.screen === "paitou") app.classList.add("paitou-screen");
+    if (state.screen === "paigow" || state.screen === "pg-showdown" || state.screen === "pg-result") app.classList.add("pg-screen");
+    if (state.screen === "pg-result") app.classList.add("pg-result-screen");
     if (typeof audioBarHTML === "function") {
       app.insertAdjacentHTML("afterbegin", audioBarHTML());
     }
@@ -3982,32 +4193,20 @@ function renderInner(app) {
           <input id="waitSec" type="number" min="5" max="180" value="${state.waitSec||30}" />` : `<p class="meta">已有枱就輸入枱號再入座。未有就撳開新枱，會派一個新號碼。</p>`}
         ` : ""}
         ${versus && isPg ? `
-          <div class="name">幾多人對戰</div>
           <div class="chips">
             ${[2,4,8].map(n => `<button class="chip ${state.pgPlayers===n?"on":""}" onclick="setPgPlayers(${n})">${n} 人</button>`).join("")}
+            <button class="chip ${state.iAmBanker?"on":""}" onclick="state.iAmBanker=true;render()">我做莊</button>
+            <button class="chip ${!state.iAmBanker?"on":""}" onclick="state.iAmBanker=false;render()">我做閒</button>
           </div>
-          <div class="meta">每人 4 張。2 人每副最多 4 局；4 人最多 2 局；8 人用晒成副 32 張，下一局要重新洗。</div>
-          <div class="name" style="margin-top:10px">你坐邊個位</div>
-          <div class="chips">
-            <button class="chip ${state.iAmBanker?"on":""}" onclick="state.iAmBanker=true;render()">我做莊家</button>
-            <button class="chip ${!state.iAmBanker?"on":""}" onclick="state.iAmBanker=false;render()">我做閒家</button>
-          </div>
-          <p class="meta">${state.iAmBanker ? "你坐莊，其餘位電腦或朋友入座。計分你一個人對所有閒家。" : "你坐閒一，莊家由電腦或朋友坐。你只同莊家比牌。"}</p>
-          <div class="name" style="margin-top:10px">牌牆設定</div>
-          <div class="chips">
-            <button class="chip ${state.shoeMode?"on":""}" onclick="state.shoeMode=true;render()">同副續鋪</button>
-            <button class="chip ${!state.shoeMode?"on":""}" onclick="state.shoeMode=false;render()">每鋪新洗</button>
-          </div>
-          <p class="meta">${state.shoeMode ? `同一副牌用到唔夠 ${need} 張先自動新洗；目前剩 ${shoeLeft} 張。` : "每次開始新局都使用一副新牌。"}</p>
         ` : ""}
         ${!isPg ? `<div class="seat-board"><div class="seat-row"><div><div class="name">你（玩家）</div><div class="meta">風位隨機分配</div></div></div>
                <div class="seat-row"><div><div class="name">電腦甲</div><div class="meta">電腦玩家</div></div></div>
                <div class="seat-row"><div><div class="name">電腦乙</div><div class="meta">電腦玩家</div></div></div>
                <div class="seat-row"><div><div class="name">電腦丙</div><div class="meta">電腦玩家</div></div></div></div>`
-          : versus ? labels.map((lab,i) => `<label class="meta">${lab}</label><input id="name${i}" value="${(state.names[i]||lab).replace(/"/g,'')}" />`).join("")
-            : `<div class="seat-row"><div><div class="name">電腦莊家</div><div class="meta">莊 · 電腦出牌</div></div></div>
-               <div class="seat-row"><div><div class="name">你（閒家）</div><div class="meta">玩家 · 下面配前後手</div></div></div>`}
+          : `<div class="seat-board"><div class="seat-row"><div><div class="name">電腦莊家</div><div class="meta">莊 · 電腦出牌</div></div></div>
+               <div class="seat-row"><div><div class="name">你（閒家）</div><div class="meta">玩家 · 下面配前後手</div></div></div></div>`}
         <div class="row">
+          ${versus && isPg ? `<button class="btn primary" onclick="startPgImmediate()">立即開局</button>` : ""}
           ${versus ? `
             <button class="btn primary" onclick="autoEnterTable()">自動入枱</button>
             <button class="btn" onclick="openNewTable()">開新枱</button>
@@ -4103,7 +4302,7 @@ function renderInner(app) {
             <div class="meta">${paiTouHelp()}</div>
           </div>
           </div>
-          <button type="button" class="hostess-bar" onclick="state.hostessOpen=!state.hostessOpen;render()">${state.hostessOpen ? "收起旁述" : "旁述"}</button>
+          <button type="button" class="hostess-bar" aria-label="旁述" onclick="state.hostessOpen=!state.hostessOpen;render()"></button>
         </div>
         <div class="name" style="margin-top:8px">莊家：${windOf(state.bankerIndex||0)} · ${state.names[state.bankerIndex||0]||""}</div>
         <div class="meta">座位：上北、下南、左西、右東。只有莊家對家係你先喺呢頁開牌頭，電腦對家會跳過。</div>
@@ -4387,7 +4586,6 @@ function renderInner(app) {
       <div class="dock-actions play-main">
         <button class="btn primary play-btn" ${m.highPlay ? (!canRaise?"disabled":"") : (!canLead?"disabled":"")} onclick="submitAction(false)">${m.highPlay ? "鬥大出牌" : "出牌領磴"}</button>
         <button class="btn pad-btn" ${m.highPlay ? "" : "disabled"} onclick="submitAction(true)">${m.highPlay ? `墊 ${m.highPlay.count} 張` : "墊牌"}</button>
-        <button class="btn clear-btn" onclick="state.selectedIds=[];render()">重新選牌</button>
         ${!m.finished ? `<div class="btn next-pack"><button type="button" ${m.awaitingNextRound?"":"disabled"} onclick="continueAfterReview()">下一輪</button><button type="button" class="${state.autoNext?"on":""}" onclick="toggleAutoNext()">自動</button></div>` : ""}
         ${m.awaitingNextRound && m.finished ? `<button class="btn primary" onclick="continueAfterReview()">查看本局結果</button>` : ""}
       </div>
@@ -4397,7 +4595,6 @@ function renderInner(app) {
       ${!m.awaitingNextRound && !m.finished && !isHuman(m.currentPlayer) ? `<div id="turnClock" class="turn-clock">20s</div>` : ""}
       <div class="dock-actions">
         ${humanTurn && !m.awaitingNextRound ? `<button class="btn" onclick="pauseForCoach()">暫停教學</button>` : ""}
-        ${humanTurn && !m.awaitingNextRound ? `<button class="btn" onclick="requestComputerPlay()">電腦代打</button>` : ""}
         <button class="btn" onclick="hintPlay()" ${humanTurn && !m.awaitingNextRound ? "" : "disabled"}>提示</button>
         <button class="btn opened-btn" onclick="state.showRef=true;render()">已開牌（${m.trickHistory.length}）</button>
         <button class="btn exit-btn" onclick="state.confirmExit=true;render()">退出遊戲</button>
@@ -4575,6 +4772,23 @@ function autoEnterTable() {
   const open = (state.netTables || []).find(t => t.game === game && (t.filled || 0) < (t.seats || 4));
   if (open) joinNetTable(open.code);
   else openNewTable();
+}
+function startPgImmediate() {
+  const n = [2, 4, 8].includes(state.pgPlayers) ? state.pgPlayers : 2;
+  const labels = ["莊家","閒一","閒二","閒三","閒四","閒五","閒六","閒七"];
+  const me = state.iAmBanker ? 0 : 1;
+  state.game = "paigow";
+  state.mode = "versus";
+  state.pgPlayers = n;
+  state.bankerIndex = 0;
+  state.names = labels.slice(0, n).map((lab, i) => i === me ? "你" : lab);
+  state.humans = state.names.map((_, i) => i === me);
+  state.readySeats = state.humans.slice();
+  state.hosted = state.names.map(() => false);
+  state.disconnected = state.names.map(() => false);
+  state.passReady = true;
+  stopNetTableWatch();
+  startPaigow(true);
 }
 function openNewTable() {
   const code = String(1000 + Math.floor(Math.random() * 9000));
@@ -5476,22 +5690,19 @@ function renderPaigow(app) {
     </div>`;
   };
   app.innerHTML = `
-    ${gameChrome(title, `<div class="meta">${n}人 · ${versus ? state.names[i]+" 配牌" : "你（閒家）　對　電腦莊家"}</div>`)}
+    ${gameChrome(title, `<div class="meta">你（閒家）　對　電腦莊家</div>`)}
     <div class="bacc">
       <div class="bacc-row">${seat(b, true)}</div>
       <div class="bacc-row">${left.map(x => seat(x, true)).join("")}<div style="flex:1"></div>${right.map(x => seat(x, true)).join("")}</div>
     </div>
-    <p class="meta" style="margin:8px 6px 12px">計分：莊家一個人對所有閒家，閒家之間唔對打。揀兩張做後手，前手唔可以大過後手。${state.shoeMode ? "牌牆剩 "+(state.shoeDeck||[]).length+" 張。" : ""}</p>
-    ${usedTilesBoard()}
+    <p class="meta" style="margin:8px 6px 12px">計分：莊家一個人對所有閒家，閒家之間唔對打。揀兩張做後手，前手唔可以大過後手。</p>
     ${!isHuman(i) && pg && !pg.splits[i] ? `<div id="turnClock" class="turn-clock">20s</div>` : ""}
-    ${versus ? `<div class="meta">${state.names.map((n,k)=>`${n}${state.disconnected[k]?" 斷線代打":state.hosted[k]?" 托管":""}`).join(" · ")}</div>`:""}
     <div class="hand-box">
-      <div class="name">${versus?state.names[i]:state.names[i]||"你（閒家）"} · 畫面下方出牌</div>
+      <div class="name">你（閒家） · 畫面下方出牌</div>
       <div class="tiles" style="margin:12px 0">${hand.map(t => tileHTML(t, { selected: pg.selected.includes(t.id), clickable: true })).join("")}</div>
       <div class="dock-actions">
         <button class="btn primary" onclick="pgConfirmSplit()">選擇兩隻做後手</button>
         <button class="btn" onclick="state.pg.selected=[];render()">重選</button>
-        ${isHuman(i) ? `<button class="btn" onclick="requestComputerPlay()">電腦代打</button>` : ""}
         <button class="btn exit-btn" onclick="state.confirmExit=true;render()">退出遊戲</button>
       </div>
     </div>${exitOverlay()}`;
