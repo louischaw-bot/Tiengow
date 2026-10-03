@@ -5,21 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 (function () {
-  function portrait() { return window.innerHeight > window.innerWidth; }
-  function sync() {
-    document.documentElement.classList.toggle("preview-spin", portrait());
+  function handheld() {
+    return (window.matchMedia && matchMedia("(pointer: coarse)").matches) || navigator.maxTouchPoints > 1;
   }
-  sync();
-  window.addEventListener("resize", sync);
-  window.addEventListener("orientationchange", sync);
+  function sync() {
+    var land = window.innerWidth > window.innerHeight;
+    document.documentElement.classList.add("preview-spin");
+    document.documentElement.classList.toggle("upright-land", land);
+    var s = land
+      ? Math.min(window.innerWidth / 844, window.innerHeight / 390)
+      : Math.min(window.innerWidth / 390, window.innerHeight / 844);
+    document.documentElement.style.setProperty("--land-scale", String(s));
+    if (!land && handheld()) lockLandscape();
+  }
   function lockLandscape() {
     try {
       var o = screen.orientation;
       if (o && o.lock) o.lock("landscape").catch(function () {});
     } catch (e) {}
   }
-  document.addEventListener("touchstart", lockLandscape, { once: true });
-  document.addEventListener("click", lockLandscape, { once: true });
+  sync();
+  window.addEventListener("resize", sync);
+  window.addEventListener("orientationchange", sync);
+  document.addEventListener("touchstart", lockLandscape);
+  document.addEventListener("click", lockLandscape);
 })();
 document.addEventListener("DOMContentLoaded", function () {
   var stage = document.getElementById("spinStage");
@@ -1142,16 +1151,18 @@ document.addEventListener("DOMContentLoaded", function () {
   html.preview-spin #spinStage {
     display: block;
     position: fixed;
-    width: 100vh;
-    height: 100vw;
+    width: 844px;
+    height: 390px;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) rotate(-90deg);
+    transform: translate(-50%, -50%) rotate(-90deg) scale(var(--land-scale, 1));
     transform-origin: center center;
-    overflow-x: auto;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
     background: transparent;
+  }
+  html.preview-spin.upright-land, html.preview-spin.upright-land body { overflow: hidden; }
+  html.preview-spin.upright-land #spinStage {
+    transform: translate(-50%, -50%) scale(var(--land-scale, 1));
   }
   html.preview-spin body { padding: 4px 8px 8px !important; }
   html.preview-spin #app,
@@ -1204,8 +1215,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   html.preview-spin .home-split {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 6px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 4px;
     width: 100%;
     min-height: 0;
     flex: 1 1 auto;
@@ -1216,19 +1227,14 @@ document.addEventListener("DOMContentLoaded", function () {
     flex-direction: column;
     overflow: hidden;
     box-sizing: border-box;
-    padding: 28px 6px 4px !important;
+    padding: 26px 2px 2px !important;
   }
   html.preview-spin #app.home-wrap:has(.home-split) .hero { flex: 0 0 auto; padding: 0; }
   html.preview-spin #app.home-wrap:has(.home-split) .eyebrow,
-  html.preview-spin #app.home-wrap:has(.home-split) .sub { display: none; }
-  html.preview-spin #app.home-wrap:has(.home-split) .title { font-size: 18px; line-height: 1.1; }
-  html.preview-spin .home-left {
-    display: grid;
-    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 6px;
-    min-width: 0;
-    min-height: 0;
-  }
+  html.preview-spin #app.home-wrap:has(.home-split) .sub,
+  html.preview-spin #app.home-wrap:has(.home-split) .mode-card .meta { display: none; }
+  html.preview-spin #app.home-wrap:has(.home-split) .title { font-size: 14px; line-height: 1; margin: 0; }
+  html.preview-spin .home-left { display: contents; }
   html.preview-spin .home-left .modes { display: contents; }
   html.preview-spin .home-right {
     display: flex;
@@ -1236,26 +1242,26 @@ document.addEventListener("DOMContentLoaded", function () {
     min-width: 0;
     min-height: 0;
     overflow: hidden;
+    gap: 4px;
   }
   html.preview-spin .mascot-scene { display: none; }
   html.preview-spin .hero .studio,
   html.preview-spin .foot { display: none; }
-  html.preview-spin .mode-card { padding: 4px 6px; gap: 6px; margin: 0; min-width: 0; overflow: hidden; }
-  html.preview-spin .home-left .mode-card { height: 100%; }
-  html.preview-spin .mode-icon { width: 32px; height: 32px; flex-basis: 32px; }
-  html.preview-spin .mode-card h2 { font-size: 15px; }
-  html.preview-spin .mode-card .meta { font-size: 11px; }
-  html.preview-spin .mode-actions { flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+  html.preview-spin .mode-card { padding: 2px 4px; gap: 2px; margin: 0; min-width: 0; min-height: 0; overflow: hidden; height: 100%; }
+  html.preview-spin .home-right .mode-card { height: auto; flex: 0 0 auto; }
+  html.preview-spin .mode-icon { display: none; }
+  html.preview-spin .mode-card h2 { font-size: 13px; margin: 0; }
+  html.preview-spin .mode-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 2px; flex: 1; }
   html.preview-spin .mode-actions .hot.slim,
   html.preview-spin .mode-actions .versus-btn,
   html.preview-spin .mode-actions .newbie-btn {
-    flex: 1 1 46%;
     min-width: 0;
-    padding: 5px 4px;
-    font-size: 11px;
+    padding: 2px 2px;
+    font-size: 10px;
+    line-height: 1.15;
   }
-  html.preview-spin .menu-list { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 4px; min-height: 0; }
-  html.preview-spin .menu-list button { padding: 6px 4px; font-size: 11px; }
+  html.preview-spin .menu-list { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 0; min-height: 0; flex: 1; }
+  html.preview-spin .menu-list button { padding: 2px; font-size: 10px; line-height: 1.15; min-height: 0; }
   html.preview-spin #app.home-wrap:has(.seat-board) {
     height: 100%;
     overflow: hidden;
@@ -1497,7 +1503,7 @@ document.addEventListener("DOMContentLoaded", function () {
 		<meta name="twitter:image:height" content="630"><link rel="canonical" href="https://tengucard-3f8svuk8.manus.space/tiengow-web.html"><link rel="manifest" href="https://tengucard-3f8svuk8.manus.space/__manus/pwa/manifest.webmanifest" crossorigin="use-credentials"></head>
 <body style="background-image: url(&quot;assets/img/bg-login.jpg&quot;); background-size: cover; background-position: center bottom; background-repeat: no-repeat; background-attachment: fixed; background-color: rgb(10, 20, 32);">
 <div id="sceneBg" aria-hidden="true" style="background-image: url(&quot;assets/img/bg-login.jpg&quot;); background-position: center bottom; background-size: cover;">
-  <img src="./天九／牌九 · PI-CORE TECHNOLOGY CO., LIMITED_files/bg-login.jpg" alt="" onerror="this.src='bg-home-2.jpg'">
+  <img src="assets/img/bg-login.jpg" alt="" onerror="this.src='assets/img/bg-home-2.jpg'">
 </div>
 <audio id="bgmEl" playsinline preload="auto"></audio>
 <div class="home-wrap" id="app" style="background-image: none; background-color: transparent; position: relative; z-index: 1;"><div class="audio-bar">
@@ -1517,7 +1523,7 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
     <div class="login-card">
       <div class="name" style="text-align:center">選擇頭像</div>
-      <div class="avatar-pick"><label><input type="radio" name="loginAvatar" value="0"><img src="./天九／牌九 · PI-CORE TECHNOLOGY CO., LIMITED_files/dog-south.jpg" alt="柴犬"><div class="meta">柴犬</div></label><label><input type="radio" name="loginAvatar" value="1"><img src="./天九／牌九 · PI-CORE TECHNOLOGY CO., LIMITED_files/dog-west.jpg" alt="八哥"><div class="meta">八哥</div></label><label><input type="radio" name="loginAvatar" value="2"><img src="./天九／牌九 · PI-CORE TECHNOLOGY CO., LIMITED_files/dog-north.jpg" alt="哈士奇"><div class="meta">哈士奇</div></label><label><input type="radio" name="loginAvatar" value="3" checked=""><img src="./天九／牌九 · PI-CORE TECHNOLOGY CO., LIMITED_files/dog-east.jpg" alt="哥基"><div class="meta">哥基</div></label></div>
+      <div class="avatar-pick"><label><input type="radio" name="loginAvatar" value="0"><img src="assets/img/dog-south.jpg" alt="柴犬"><div class="meta">柴犬</div></label><label><input type="radio" name="loginAvatar" value="1"><img src="assets/img/dog-west.jpg" alt="八哥"><div class="meta">八哥</div></label><label><input type="radio" name="loginAvatar" value="2"><img src="assets/img/dog-north.jpg" alt="哈士奇"><div class="meta">哈士奇</div></label><label><input type="radio" name="loginAvatar" value="3" checked=""><img src="assets/img/dog-east.jpg" alt="哥基"><div class="meta">哥基</div></label></div>
       <div class="name">建立戶口 / 登入</div>
       <input id="loginName" type="text" placeholder="顯示名稱（可選）" maxlength="12">
       <input id="loginEmail" type="email" placeholder="電郵">
@@ -3993,16 +3999,14 @@ function renderInner(app) {
             <button class="chip ${!state.shoeMode?"on":""}" onclick="state.shoeMode=false;render()">每鋪新洗</button>
           </div>
           <p class="meta">${state.shoeMode ? `同一副牌用到唔夠 ${need} 張先自動新洗；目前剩 ${shoeLeft} 張。` : "每次開始新局都使用一副新牌。"}</p>
-        ` : versus && !isPg ? `<p class="meta">天九四人一檯，各 8 張，用晒一副 32 張。開牌規則同上。</p>` : ""}
-        ${versus
-          ? labels.map((lab,i) => `<label class="meta">${lab}</label><input id="name${i}" value="${(state.names[i]||lab).replace(/"/g,'')}" />`).join("")
-          : isPg
-            ? `<div class="seat-row"><div><div class="name">電腦莊家</div><div class="meta">莊 · 電腦出牌</div></div></div>
-               <div class="seat-row"><div><div class="name">你（閒家）</div><div class="meta">玩家 · 下面配前後手</div></div></div>`
-            : `<div class="seat-board"><div class="seat-row"><div><div class="name">你（玩家）</div><div class="meta">風位隨機分配</div></div></div>
+        ` : ""}
+        ${!isPg ? `<div class="seat-board"><div class="seat-row"><div><div class="name">你（玩家）</div><div class="meta">風位隨機分配</div></div></div>
                <div class="seat-row"><div><div class="name">電腦甲</div><div class="meta">電腦玩家</div></div></div>
                <div class="seat-row"><div><div class="name">電腦乙</div><div class="meta">電腦玩家</div></div></div>
-               <div class="seat-row"><div><div class="name">電腦丙</div><div class="meta">電腦玩家</div></div></div></div>`}
+               <div class="seat-row"><div><div class="name">電腦丙</div><div class="meta">電腦玩家</div></div></div></div>`
+          : versus ? labels.map((lab,i) => `<label class="meta">${lab}</label><input id="name${i}" value="${(state.names[i]||lab).replace(/"/g,'')}" />`).join("")
+            : `<div class="seat-row"><div><div class="name">電腦莊家</div><div class="meta">莊 · 電腦出牌</div></div></div>
+               <div class="seat-row"><div><div class="name">你（閒家）</div><div class="meta">玩家 · 下面配前後手</div></div></div>`}
         <div class="row">
           ${versus ? `
             <button class="btn primary" onclick="autoEnterTable()">自動入枱</button>
@@ -4364,7 +4368,7 @@ function renderInner(app) {
   const canLead = !m.highPlay && Boolean(selectedPlay);
   const canRaise = Boolean(m.highPlay && selectedPlay && canBeat(selectedPlay, m.highPlay));
   const msg = state.message || getSelectionMessage(selected, m.highPlay);
-  const humanTurn = versus || m.currentPlayer === 0;
+  const humanTurn = m.currentPlayer === actor;
   const ref = state.showRef ? `
     <div class="overlay" onclick="if(event.target===this){state.showRef=false;render()}">
       <div class="modal">
@@ -4391,8 +4395,6 @@ function renderInner(app) {
       <div class="hand-fan">${hand.map(t => tileHTML(t, { selected: state.selectedIds.includes(t.id), clickable: m.currentPlayer===actor && !m.awaitingNextRound && !m.finished })).join("")}</div>
       <div class="status">${m.heZunFlash ? m.heZunFlash+"　" : ""}${humanTurn && !m.awaitingNextRound ? msg : (m.awaitingNextRound ? "請查看本磴結算" : "電腦對手正在出牌…")}</div>
       ${!m.awaitingNextRound && !m.finished && !isHuman(m.currentPlayer) ? `<div id="turnClock" class="turn-clock">20s</div>` : ""}
-      ${versus ? `<div class="meta">${state.names.map((n,i)=>`${n}${state.disconnected[i]?" 斷線代打":state.hosted[i]?" 托管":""}`).join(" · ")}</div>
-      <div class="row">${state.humans.map((h,i)=>h? (state.disconnected[i]?`<button class="btn" onclick="simulateReconnect(${i})">${state.names[i]}接返</button>`:`<button class="btn" onclick="simulateDisconnect(${i})">${state.names[i]}模擬斷線</button>`):"").join("")}</div>`:""}
       <div class="dock-actions">
         ${humanTurn && !m.awaitingNextRound ? `<button class="btn" onclick="pauseForCoach()">暫停教學</button>` : ""}
         ${humanTurn && !m.awaitingNextRound ? `<button class="btn" onclick="requestComputerPlay()">電腦代打</button>` : ""}
