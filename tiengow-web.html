@@ -1598,11 +1598,46 @@ document.addEventListener("DOMContentLoaded", function () {
     margin: 0;
     width: auto;
   }
-  html.preview-spin #app.pg-result-screen .row .btn {
-    padding: 8px 10px;
-    font-size: 14px;
+  html.preview-spin .pg-now {
+    position: fixed !important;
+    z-index: 45;
+    top: 150px;
+    left: 48px;
+    margin: 0;
+    padding: 10px 16px;
+    font-size: 16px;
   }
-  html.preview-spin #app.pg-screen .bacc .tiles,
+  html.preview-spin #app.room-screen.pg-screen .pg-spread .tiles {
+    position: static !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 3px;
+    margin: 0 !important;
+    left: auto !important;
+    top: auto !important;
+    overflow: visible !important;
+    max-width: none !important;
+    height: auto !important;
+  }
+  html.preview-spin #app.room-screen.pg-screen .pg-spread .tile {
+    width: var(--tw, 28px) !important;
+    height: var(--th, 84px) !important;
+    transform: none !important;
+    flex: 0 0 auto !important;
+  }
+  html.preview-spin #app.room-screen.pg-screen .pg-spread .pips { pointer-events: none; }
+  html.preview-spin #app.room-screen.pg-screen .pg-spread .tile.selected {
+    outline: 3px solid #ffe14a;
+    box-shadow: 0 0 0 3px #b8322a;
+    filter: brightness(1.4);
+  }
+  html.preview-spin #app.room-screen.pg-screen .pg-spread .who {
+    color: #ffe14a;
+    font-size: 11px;
+    line-height: 1.1;
+    text-align: center;
+  }
   html.preview-spin #app.pg-screen .pg-vs .tiles {
     display: flex !important;
     flex-direction: row !important;
@@ -4206,7 +4241,7 @@ function renderInner(app) {
           : `<div class="seat-board"><div class="seat-row"><div><div class="name">電腦莊家</div><div class="meta">莊 · 電腦出牌</div></div></div>
                <div class="seat-row"><div><div class="name">你（閒家）</div><div class="meta">玩家 · 下面配前後手</div></div></div></div>`}
         <div class="row">
-          ${versus && isPg ? `<button class="btn primary" onclick="startPgImmediate()">立即開局</button>` : ""}
+          ${versus && isPg ? `<button class="btn primary pg-now" onclick="startPgImmediate()">立即開始</button>` : ""}
           ${versus ? `
             <button class="btn primary" onclick="autoEnterTable()">自動入枱</button>
             <button class="btn" onclick="openNewTable()">開新枱</button>
@@ -5681,7 +5716,31 @@ function renderPaigow(app) {
   const mid = Math.ceil(others.length / 2);
   const left = others.slice(0, mid);
   const right = others.slice(mid);
-  const seat = (idx, cover) => {
+  const tilesFor = (idx) => {
+    if (idx === i && isHuman(idx) && !pg.splits[idx]) {
+      return (pg.hands[idx] || []).map(t => tileHTML(t, { selected: pg.selected.includes(t.id), clickable: true })).join("");
+    }
+    return pgCovered(4);
+  };
+  const spreadSeat = (idx, kind, index) => {
+    const total = others.length;
+    const many = total >= 7;
+    const midN = total >= 3;
+    const tw = many ? 16 : midN ? 20 : 30;
+    const th = many ? 40 : midN ? 52 : 84;
+    const bias = 16;
+    const visualX = kind === "banker" || total <= 1
+      ? Math.round((390 - th) / 2)
+      : Math.round(8 + index * (390 - 16 - th) / (total - 1));
+    const screenX = visualX - bias;
+    const screenY = kind === "banker" ? 20 : 300;
+    const cssLeft = 844 - screenY - tw;
+    return `<div class="bacc-seat pg-spread ${kind === "banker" ? "banker" : ""}" style="position:fixed;z-index:22;top:${screenX}px;left:${cssLeft}px;margin:0;--tw:${tw}px;--th:${th}px">
+      <div class="who">${state.names[idx] || ""}${idx === b ? " · 莊" : ""}</div>
+      <div class="tiles">${tilesFor(idx)}</div>
+    </div>`;
+  };
+  const seat = (idx) => {
     if (idx == null) return "";
     const me = idx === i;
     return `<div class="bacc-seat ${me?"on":""}">
@@ -5691,15 +5750,15 @@ function renderPaigow(app) {
   };
   app.innerHTML = `
     ${gameChrome(title, `<div class="meta">你（閒家）　對　電腦莊家</div>`)}
-    <div class="bacc">
-      <div class="bacc-row">${seat(b, true)}</div>
-      <div class="bacc-row">${left.map(x => seat(x, true)).join("")}<div style="flex:1"></div>${right.map(x => seat(x, true)).join("")}</div>
-    </div>
+    ${versus ? `<div class="bacc pg-spread-table">${spreadSeat(b, "banker", 0)}${others.map((idx, k) => spreadSeat(idx, "idler", k)).join("")}</div>` : `<div class="bacc">
+      <div class="bacc-row">${seat(b)}</div>
+      <div class="bacc-row">${left.map(x => seat(x)).join("")}<div style="flex:1"></div>${right.map(x => seat(x)).join("")}</div>
+    </div>`}
     <p class="meta" style="margin:8px 6px 12px">計分：莊家一個人對所有閒家，閒家之間唔對打。揀兩張做後手，前手唔可以大過後手。</p>
     ${!isHuman(i) && pg && !pg.splits[i] ? `<div id="turnClock" class="turn-clock">20s</div>` : ""}
     <div class="hand-box">
       <div class="name">你（閒家） · 畫面下方出牌</div>
-      <div class="tiles" style="margin:12px 0">${hand.map(t => tileHTML(t, { selected: pg.selected.includes(t.id), clickable: true })).join("")}</div>
+      ${versus ? "" : `<div class="tiles" style="margin:12px 0">${hand.map(t => tileHTML(t, { selected: pg.selected.includes(t.id), clickable: true })).join("")}</div>`}
       <div class="dock-actions">
         <button class="btn primary" onclick="pgConfirmSplit()">選擇兩隻做後手</button>
         <button class="btn" onclick="state.pg.selected=[];render()">重選</button>
