@@ -1601,11 +1601,35 @@ document.addEventListener("DOMContentLoaded", function () {
   html.preview-spin .pg-now {
     position: fixed !important;
     z-index: 45;
-    top: 150px;
-    left: 48px;
+    top: 210px;
+    left: 200px;
     margin: 0;
     padding: 10px 16px;
     font-size: 16px;
+  }
+  html.preview-spin .pg-auto {
+    position: fixed !important;
+    z-index: 45;
+    top: 210px;
+    left: 80px;
+    margin: 0;
+    padding: 10px 16px;
+    font-size: 16px;
+  }
+  html.preview-spin .ver-tag {
+    position: fixed;
+    z-index: 40;
+    top: 358px;
+    left: 749px;
+    margin: 0;
+    color: #f1e7d0;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    background: #0a1420cc;
+    border: 1px solid #c99b45;
+    border-radius: 8px;
+    padding: 3px 6px;
+    pointer-events: none;
   }
   html.preview-spin #app.room-screen.pg-screen .pg-spread .tiles {
     position: static !important;
@@ -3406,7 +3430,8 @@ function loginScreenHTML() {
         <button class="btn versus-btn" onclick="loginGuest()">以遊客身份進入</button>
       </div>
       <p class="meta" style="text-align:center">戶口只存在呢部電腦嘅瀏覽器，唔經伺服器。</p>
-    </div>`;
+    </div>
+    <div class="ver-tag">v2026.10.04</div>`;
 }
 function settingsScreenHTML() {
   const u = state.user || { name:state.names[0], avatar:state.avatar||0, mode:"guest" };
@@ -4241,7 +4266,7 @@ function renderInner(app) {
           : `<div class="seat-board"><div class="seat-row"><div><div class="name">電腦莊家</div><div class="meta">莊 · 電腦出牌</div></div></div>
                <div class="seat-row"><div><div class="name">你（閒家）</div><div class="meta">玩家 · 下面配前後手</div></div></div></div>`}
         <div class="row">
-          ${versus && isPg ? `<button class="btn primary pg-now" onclick="startPgImmediate()">立即開始</button>` : ""}
+          ${versus && isPg ? `<button class="btn primary pg-now" onclick="startPgImmediate()">立即開始</button><button class="btn primary pg-auto" onclick="autoEnterTable()">自動進入</button>` : ""}
           ${versus ? `
             <button class="btn primary" onclick="autoEnterTable()">自動入枱</button>
             <button class="btn" onclick="openNewTable()">開新枱</button>
